@@ -1,0 +1,61 @@
+{
+    "name": "@exabyte-io/PROJECT_NAME",
+    "version": "0.0.0",
+    "description": "PROJECT_DESCRIPTION",
+    "scripts": {
+        "test": "nyc --reporter=text mocha --recursive --bail --require @babel/register/lib --require tests/setup.js tests",
+        "lint": "eslint src tests && prettier --write src tests",
+        "lint:fix": "eslint --fix --cache src tests && prettier --write src tests",
+        "transpile": "babel --out-dir dist src",
+        "postinstall": "npm run transpile"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Exabyte-io/PROJECT_NAME.git"
+    },
+    "main": "dist/index.js",
+    "files": [
+        "/dist",
+        "/src",
+        ".babelrc"
+    ],
+    "author": "Exabyte Inc.",
+    "bugs": {
+        "url": "https://github.com/Exabyte-io/PROJECT_NAME/issues"
+    },
+    "license": "Apache-2.0",
+    "homepage": "https://github.com/Exabyte-io/PROJECT_NAME",
+    "dependencies": {
+        "@babel/cli": "7.16.0",
+        "@babel/core": "7.16.0",
+        "@babel/eslint-parser": "7.16.3",
+        "@babel/plugin-proposal-class-properties": "7.16.0",
+        "@babel/preset-env": "7.16.4",
+        "@babel/preset-react": "7.16.7",
+        "@babel/register": "^7.16.0",
+        "@babel/runtime-corejs3": "7.16.8"
+    },
+    "devDependencies": {
+        "chai": "^4.3.4",
+        "eslint": "7.32.0",
+        "eslint-config-airbnb": "19.0.2",
+        "eslint-config-prettier": "8.3.0",
+        "eslint-plugin-import": "2.25.3",
+        "eslint-plugin-jsdoc": "37.1.0",
+        "eslint-plugin-jsx-a11y": "6.5.1",
+        "eslint-plugin-prettier": "4.0.0",
+        "eslint-plugin-simple-import-sort": "7.0.0",
+        "husky": "^7.0.4",
+        "lint-staged": "^12.1.2",
+        "mocha": "^9.1.3",
+        "nyc": "^15.1.0"
+    },
+    "engines": {
+        "node": ">=12.0.0"
+    },
+    "lint-staged": {
+        "*.js": "eslint --cache --fix",
+        "*.{js,css}": "prettier --write"
+    }
+}
+
