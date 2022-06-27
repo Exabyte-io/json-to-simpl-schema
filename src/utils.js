@@ -1,13 +1,21 @@
 import SimpleSchema from "simpl-schema";
 
 export function getJsonSchemaProperties(schema) {
-    const defaultValue = schema.type === "object" ? {} : null;
+    const allOfProps = Object.assign({}, ...(schema.allOf || []).map(getJsonSchemaProperties));
+    const schemaProps = schema.properties || {};
 
-    return schema.properties || defaultValue;
+    return { ...allOfProps, ...schemaProps };
+}
+
+function getSchemaRequiredProperties(schema) {
+    const allOfRequiredProperties = (schema.allOf || []).map(getSchemaRequiredProperties).flat();
+    const schemaRequiredProperties = schema.required || [];
+
+    return allOfRequiredProperties.concat(schemaRequiredProperties);
 }
 
 export function getOptionalOption(propertyName, schema) {
-    const requiredProperties = schema.required || schema.items?.required || [];
+    const requiredProperties = getSchemaRequiredProperties(schema);
 
     return !requiredProperties.includes(propertyName);
 }

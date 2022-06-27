@@ -71,77 +71,77 @@ const packageJsonSchema = {
     additionalProperties: true, // ignore additionalProperties option at root level since SimpleSchema doesn't support blackbox at root level.
 };
 
-const allOf = {
-    allOf: [
-        {
-            schemaId: "system-entity",
-            $schema: "http://json-schema.org/draft-04/schema#",
-            title: "entity schema",
-            allOf: [
-                {
-                    schemaId: "system-timestampable",
-                    $schema: "http://json-schema.org/draft-04/schema#",
-                    title: "timestampable entity schema",
-                    properties: {
-                        createdAt: {
-                            description: "entity creation time",
-                            type: "string",
-                        },
-                        updatedAt: {
-                            description: "entity last modification time",
-                            type: "string",
-                        },
-                        required: ["createdAt", "updatedAt"],
+const allOf = [
+    {
+        schemaId: "system-entity",
+        $schema: "http://json-schema.org/draft-04/schema#",
+        title: "entity schema",
+        allOf: [
+            {
+                schemaId: "system-timestampable",
+                $schema: "http://json-schema.org/draft-04/schema#",
+                title: "timestampable entity schema",
+                properties: {
+                    createdAt: {
+                        description: "entity creation time",
+                        type: "string",
+                        format: "date",
+                    },
+                    updatedAt: {
+                        description: "entity last modification time",
+                        type: "string",
+                        format: "date",
                     },
                 },
-                {
-                    schemaId: "system-soft-removable",
-                    $schema: "http://json-schema.org/draft-04/schema#",
-                    title: "soft removable entity schema",
-                    properties: {
-                        removedAt: {
-                            description: "Timestamp of the moment when entity was removed",
-                            type: "string",
-                        },
-                        removed: {
-                            description: "Identifies that entity was removed",
-                            type: "boolean",
-                        },
+                required: ["createdAt", "updatedAt"],
+            },
+            {
+                schemaId: "system-soft-removable",
+                $schema: "http://json-schema.org/draft-04/schema#",
+                title: "soft removable entity schema",
+                properties: {
+                    removedAt: {
+                        description: "Timestamp of the moment when entity was removed",
+                        type: "string",
+                        format: "date",
                     },
-                },
-                {
-                    schemaId: "system-name",
-                    $schema: "http://json-schema.org/draft-04/schema#",
-                    title: "timestampable entity schema",
-                    properties: {
-                        name: {
-                            description: "entity name",
-                            type: "string",
-                            maxLength: 300,
-                        },
-                        slug: {
-                            description: "entity slug",
-                            type: "string",
-                        },
+                    removed: {
+                        description: "Identifies that entity was removed",
+                        type: "boolean",
                     },
-                    required: ["name"],
-                },
-            ],
-            properties: {
-                _id: {
-                    description: "entity identity",
-                    type: "string",
-                },
-                schemaVersion: {
-                    description:
-                        "entity's schema version. Used to distinct between different schemas.",
-                    type: "string",
                 },
             },
-            required: ["_id", "schemaVersion"],
+            {
+                schemaId: "system-name",
+                $schema: "http://json-schema.org/draft-04/schema#",
+                title: "timestampable entity schema",
+                properties: {
+                    name: {
+                        description: "entity name",
+                        type: "string",
+                        maxLength: 300,
+                    },
+                    slug: {
+                        description: "entity slug",
+                        type: "string",
+                    },
+                },
+                required: ["name", "slug"],
+            },
+        ],
+        properties: {
+            _id: {
+                description: "entity identity",
+                type: "string",
+            },
+            schemaVersion: {
+                description: "entity's schema version. Used to distinct between different schemas.",
+                type: "string",
+            },
         },
-    ],
-};
+        required: ["_id", "schemaVersion"],
+    },
+];
 
 describe("JsonToSimpleSchema", () => {
     it("Validate", () => {
@@ -201,20 +201,48 @@ describe("JsonToSimpleSchema", () => {
         });
     });
 
-    // it("AllOf", () => {
-    //     const testSchema = { ...allOf, ...packageJsonSchema };
-    //     const simpleSchema = buldSimpleSchema(testSchema)._schema;
-    //     const rawSchema = simpleSchema._schema;
+    it("AllOf", () => {
+        const simpleSchema = new JsonToSimpleSchema({
+            allOf,
+            ...packageJsonSchema,
+        }).toSimpleSchema();
 
-    //     simpleSchema.validate({
-    //         id: 1,
-    //         name: "test",
-    //         price: 5.5,
-    //         tags: ["test", "test"],
-    //         arrayOfObjects: [{ foo: "foo" }],
-    //         color: "red",
-    //         emailAddress: "test@test.com",
-    //     });
-    //     expect(true).to.equal(true);
-    // });
+        const rawSchema = simpleSchema._schema;
+
+        expect(rawSchema._id.type.definitions[0].type).to.equal(String);
+        expect(rawSchema._id.optional).to.equal(false);
+
+        expect(rawSchema.schemaVersion.type.definitions[0].type).to.equal(String);
+        expect(rawSchema.schemaVersion.optional).to.equal(false);
+
+        expect(rawSchema.createdAt.type.definitions[0].type).to.equal(Date);
+        expect(rawSchema.createdAt.optional).to.equal(false);
+
+        expect(rawSchema.updatedAt.type.definitions[0].type).to.equal(Date);
+        expect(rawSchema.updatedAt.optional).to.equal(false);
+
+        expect(rawSchema.removed.type.definitions[0].type).to.equal(Boolean);
+        expect(rawSchema.removed.optional).to.equal(true);
+
+        expect(rawSchema.removedAt.type.definitions[0].type).to.equal(Date);
+        expect(rawSchema.removedAt.optional).to.equal(true);
+
+        expect(rawSchema.slug.type.definitions[0].type).to.equal(String);
+
+        simpleSchema.validate({
+            id: 1,
+            _id: "TT",
+            schemaVersion: "df",
+            slug: "test",
+            name: "test",
+            price: 5.5,
+            tags: ["test", "test"],
+            arrayOfObjects: [{ foo: "foo" }],
+            color: "red",
+            emailAddress: "test@test.com",
+            removed: false,
+            createdAt: new Date("2022-12-20"),
+            updatedAt: new Date("2022-12-20"),
+        });
+    });
 });
