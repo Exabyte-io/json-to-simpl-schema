@@ -1,1 +1,3 @@
-// Add exports here
+import JsonToSimpleSchema from "./JsonToSimpleSchema";
+
+export default JsonToSimpleSchema;
