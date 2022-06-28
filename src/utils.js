@@ -1,4 +1,5 @@
 import SimpleSchema from "simpl-schema";
+// import SimpleSchema from "./simpl-schema/package/dist/main";
 
 export function getJsonSchemaProperties(schema) {
     const allOfProps = Object.assign({}, ...(schema.allOf || []).map(getJsonSchemaProperties));

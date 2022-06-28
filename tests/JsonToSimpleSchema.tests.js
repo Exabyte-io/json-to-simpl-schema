@@ -1,151 +1,15 @@
 import { expect } from "chai";
 import SimpleSchema from "simpl-schema";
 
+// import SimpleSchema from "../src/simpl-schema/package/dist/main";
 import JsonToSimpleSchema from "../src/index";
-
-const packageJsonSchema = {
-    $schema: "http://json-schema.org/draft-04/schema#",
-    title: "Product",
-    description: "A product from Acme's catalog",
-    type: "object",
-    properties: {
-        id: {
-            description: "The unique identifier for a product",
-            type: "integer",
-        },
-        name: {
-            description: "Name of the product",
-            type: "string",
-        },
-        price: {
-            type: "number",
-            minimum: "0", // test parsing of string values for number
-            exclusiveMinimum: 1, // test parsing string values for boolean
-        },
-        tags: {
-            type: "array",
-            items: {
-                type: "string",
-            },
-            minItems: 1,
-            uniqueItems: true,
-        },
-        arrayOfObjects: {
-            type: "array",
-            items: {
-                type: "object",
-                properties: {
-                    foo: { type: "string" },
-                },
-            },
-        },
-        objectWithAdditionalProps: {
-            type: "object",
-            properties: {
-                blah: {
-                    type: "string",
-                },
-            },
-            additionalProperties: true,
-        },
-        arrayWithAdditionalProperties: {
-            type: "array",
-            items: {
-                type: "object",
-                additionalProperties: true,
-                properties: {
-                    test: { type: "string" },
-                },
-            },
-        },
-        color: {
-            type: "string",
-            enum: ["red", "orange", "yellow", "green", "blue", "indigo", "violet", null],
-        },
-        emailAddress: {
-            type: "string",
-            format: "email",
-        },
-    },
-    required: ["id", "name", "price"],
-    additionalProperties: true, // ignore additionalProperties option at root level since SimpleSchema doesn't support blackbox at root level.
-};
-
-const allOf = [
-    {
-        schemaId: "system-entity",
-        $schema: "http://json-schema.org/draft-04/schema#",
-        title: "entity schema",
-        allOf: [
-            {
-                schemaId: "system-timestampable",
-                $schema: "http://json-schema.org/draft-04/schema#",
-                title: "timestampable entity schema",
-                properties: {
-                    createdAt: {
-                        description: "entity creation time",
-                        type: "string",
-                        format: "date",
-                    },
-                    updatedAt: {
-                        description: "entity last modification time",
-                        type: "string",
-                        format: "date",
-                    },
-                },
-                required: ["createdAt", "updatedAt"],
-            },
-            {
-                schemaId: "system-soft-removable",
-                $schema: "http://json-schema.org/draft-04/schema#",
-                title: "soft removable entity schema",
-                properties: {
-                    removedAt: {
-                        description: "Timestamp of the moment when entity was removed",
-                        type: "string",
-                        format: "date",
-                    },
-                    removed: {
-                        description: "Identifies that entity was removed",
-                        type: "boolean",
-                    },
-                },
-            },
-            {
-                schemaId: "system-name",
-                $schema: "http://json-schema.org/draft-04/schema#",
-                title: "timestampable entity schema",
-                properties: {
-                    name: {
-                        description: "entity name",
-                        type: "string",
-                        maxLength: 300,
-                    },
-                    slug: {
-                        description: "entity slug",
-                        type: "string",
-                    },
-                },
-                required: ["name", "slug"],
-            },
-        ],
-        properties: {
-            _id: {
-                description: "entity identity",
-                type: "string",
-            },
-            schemaVersion: {
-                description: "entity's schema version. Used to distinct between different schemas.",
-                type: "string",
-            },
-        },
-        required: ["_id", "schemaVersion"],
-    },
-];
+import allOf from "./fixtures/allOf";
+import baseJsonSchema from "./fixtures/baseJsonSchema";
+import oneOf from "./fixtures/oneOf";
 
 describe("JsonToSimpleSchema", () => {
-    it("Validate", () => {
-        const simpleSchema = new JsonToSimpleSchema(packageJsonSchema).toSimpleSchema();
+    it("Base functionality", () => {
+        const simpleSchema = new JsonToSimpleSchema(baseJsonSchema).toSimpleSchema();
         const rawSchema = simpleSchema._schema;
 
         expect(rawSchema.id.type.definitions[0].type).to.equal(SimpleSchema.Integer);
@@ -181,6 +45,9 @@ describe("JsonToSimpleSchema", () => {
             true,
         );
 
+        expect(rawSchema.arrayOfStrings.type.definitions[0].type).to.equal(Array);
+        expect(rawSchema["arrayOfStrings.$"].type.definitions[0].type).to.equal(String);
+
         expect(rawSchema.objectWithAdditionalProps.type.definitions[0].type).to.equal(Object);
         expect(rawSchema.objectWithAdditionalProps.type.definitions[0].blackbox).to.equal(true);
 
@@ -190,6 +57,22 @@ describe("JsonToSimpleSchema", () => {
         expect(rawSchema.emailAddress.type.definitions[0].type).to.equal(String);
         expect(rawSchema.emailAddress.type.definitions[0].regEx).to.equal(SimpleSchema.RegEx.Email);
 
+        expect(rawSchema.regExField.type.definitions[0].type).to.equal(String);
+        // expect(rawSchema.regExField.type.definitions[0].regEx).to.equal(
+        //     rawSchema.regExField.type.definitions[0].regEx,
+        // );
+
+        expect(rawSchema.hostname.type.definitions[0].type).to.equal(String);
+        expect(rawSchema.hostname.type.definitions[0].regEx).to.equal(SimpleSchema.RegEx.Domain);
+
+        expect(rawSchema.ipv4.type.definitions[0].type).to.equal(String);
+        expect(rawSchema.ipv4.type.definitions[0].regEx).to.equal(SimpleSchema.RegEx.IPv4);
+
+        expect(rawSchema.ipv6.type.definitions[0].type).to.equal(String);
+        expect(rawSchema.ipv6.type.definitions[0].regEx).to.equal(SimpleSchema.RegEx.IPv6);
+
+        expect(rawSchema.emptyObject.type.definitions[0].type).to.equal(Object);
+
         simpleSchema.validate({
             id: 1,
             name: "test",
@@ -198,13 +81,18 @@ describe("JsonToSimpleSchema", () => {
             arrayOfObjects: [{ foo: "foo" }],
             color: "red",
             emailAddress: "test@test.com",
+            regExField: "sometest-it",
+            hostname: "www.google.com",
+            ipv4: "1.1.1.1",
+            ipv6: "2001:0db8:11a3:09d7:1f34:8a2e:07a0:765d",
+            emptyObject: {},
         });
     });
 
     it("AllOf", () => {
         const simpleSchema = new JsonToSimpleSchema({
             allOf,
-            ...packageJsonSchema,
+            ...baseJsonSchema,
         }).toSimpleSchema();
 
         const rawSchema = simpleSchema._schema;
@@ -243,6 +131,50 @@ describe("JsonToSimpleSchema", () => {
             removed: false,
             createdAt: new Date("2022-12-20"),
             updatedAt: new Date("2022-12-20"),
+        });
+    });
+
+    it("OneOf", () => {
+        const simpleSchema = new JsonToSimpleSchema({
+            type: "object",
+            properties: {
+                field: {
+                    oneOf,
+                    properties: {
+                        test: {
+                            type: "string",
+                        },
+                    },
+                    required: ["test"],
+                },
+            },
+            required: ["field"],
+        }).toSimpleSchema();
+
+        simpleSchema.validate({
+            field: {
+                vectors: {
+                    a: [1, 1, 1],
+                    b: [1, 1, 1],
+                    c: [1, 1, 1],
+                    alat: 1,
+                    units: "nm",
+                },
+                test: "test",
+            },
+        });
+
+        simpleSchema.validate({
+            field: {
+                a: 1,
+                b: 1,
+                c: 1,
+                alpha: 1,
+                beta: 1,
+                gamma: 1,
+                type: "MCL",
+                test: "test",
+            },
         });
     });
 });

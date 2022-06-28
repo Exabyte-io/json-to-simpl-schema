@@ -1,5 +1,6 @@
 import SimpleSchema from "simpl-schema";
 
+// import SimpleSchema from "./simpl-schema/package/dist/main";
 import {
     getAllowedValuesOption,
     getBlackboxOption,
@@ -44,6 +45,19 @@ export default class JsonToSimpleSchema {
     }
 
     static getSimpleSchemaTypeOption(jsonProperty) {
+        const { oneOf, anyOf } = jsonProperty;
+
+        if (oneOf || anyOf) {
+            const schemas = (oneOf || anyOf).map((schema) => {
+                const baseSchema = new JsonToSimpleSchema(jsonProperty).toSimpleSchema();
+                const oneOfSchema = new JsonToSimpleSchema(schema).toSimpleSchema();
+
+                return oneOfSchema.extend(baseSchema);
+            });
+
+            return SimpleSchema.oneOf(...schemas);
+        }
+
         const primitiveType = getPrimitivePropertyType(jsonProperty);
 
         return primitiveType === Object &&
