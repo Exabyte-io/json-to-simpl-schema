@@ -1,15 +1,78 @@
 import SimpleSchema from "simpl-schema";
-// import SimpleSchema from "./simpl-schema/package/dist/main";
+
+/**
+ *
+ *  There's no native implementation of AnyOf in SimpleSchema, but there is an implementation of OneOf
+ *  In general, all AnyOf are a special case OneOf and any AnyOf could be converted to OneOf
+ *  Example:
+ *  {
+ *      anyOf: [
+ *          { field1: { type: string } },
+ *           { field2: { type: string } }
+ *       ]
+ *   }
+ *   is equivalent to
+ *   {
+ *      oneOf: [
+ *           { field1: { type: string } },
+ *           { field2: { type: string } },
+ *           {
+ *              allOf: [
+ *                  { field1: { type: string } },
+ *                  { field2: { type: string } },
+ *              ]
+ *           }
+ *       ]
+ *   }
+ *   Remove this function in case native support of AnyOf is implemented
+ */
+export function convertAnyOfToOneOf(anyOf) {
+    const oneOf = anyOf.reduce((combinations, schema) => {
+        const result = combinations.reduce(
+            (tempArr, cur) => [...tempArr, [...cur, schema]],
+            [[schema]],
+        );
+        return [...combinations, ...result];
+    }, []);
+
+    return oneOf.map((schemas) => ({ allOf: schemas }));
+}
 
 export function getJsonSchemaProperties(schema) {
-    const allOfProps = Object.assign({}, ...(schema.allOf || []).map(getJsonSchemaProperties));
+    if (!schema) {
+        return {};
+    }
+
+    /**
+     * SimpleSchema does not support oneOf at the root level at the moment.
+     * But there are a number of schemas that refers to only one single schema in oneOf/anyOf statement and this case can be handled
+     */
+    const { allOf = [], oneOf = [], anyOf = [] } = schema;
+
+    const allOfProps = {
+        ...Object.assign({}, ...allOf.map(getJsonSchemaProperties).flat()),
+        ...getJsonSchemaProperties(oneOf[0]),
+        ...getJsonSchemaProperties(anyOf[0]),
+    };
+
     const schemaProps = schema.properties || {};
 
     return { ...allOfProps, ...schemaProps };
 }
 
-function getSchemaRequiredProperties(schema) {
-    const allOfRequiredProperties = (schema.allOf || []).map(getSchemaRequiredProperties).flat();
+export function getSchemaRequiredProperties(schema) {
+    if (!schema) {
+        return [];
+    }
+
+    const { allOf = [], oneOf = [], anyOf = [] } = schema;
+
+    const allOfRequiredProperties = [
+        ...allOf.map(getSchemaRequiredProperties).flat(),
+        ...getSchemaRequiredProperties(oneOf[0]),
+        ...getSchemaRequiredProperties(anyOf[0]),
+    ];
+
     const schemaRequiredProperties = schema.required || [];
 
     return allOfRequiredProperties.concat(schemaRequiredProperties);

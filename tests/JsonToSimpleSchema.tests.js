@@ -1,9 +1,9 @@
 import { expect } from "chai";
 import SimpleSchema from "simpl-schema";
 
-// import SimpleSchema from "../src/simpl-schema/package/dist/main";
 import JsonToSimpleSchema from "../src/index";
 import allOf from "./fixtures/allOf";
+import anyOf from "./fixtures/anyOf";
 import baseJsonSchema from "./fixtures/baseJsonSchema";
 import oneOf from "./fixtures/oneOf";
 
@@ -58,9 +58,6 @@ describe("JsonToSimpleSchema", () => {
         expect(rawSchema.emailAddress.type.definitions[0].regEx).to.equal(SimpleSchema.RegEx.Email);
 
         expect(rawSchema.regExField.type.definitions[0].type).to.equal(String);
-        // expect(rawSchema.regExField.type.definitions[0].regEx).to.equal(
-        //     rawSchema.regExField.type.definitions[0].regEx,
-        // );
 
         expect(rawSchema.hostname.type.definitions[0].type).to.equal(String);
         expect(rawSchema.hostname.type.definitions[0].regEx).to.equal(SimpleSchema.RegEx.Domain);
@@ -174,6 +171,99 @@ describe("JsonToSimpleSchema", () => {
                 gamma: 1,
                 type: "MCL",
                 test: "test",
+            },
+        });
+    });
+
+    it("AnyOf", () => {
+        const simpleSchema = new JsonToSimpleSchema({
+            type: "object",
+            properties: {
+                field: {
+                    anyOf,
+                    properties: {
+                        test: {
+                            type: "string",
+                        },
+                    },
+                    required: ["test"],
+                },
+            },
+            required: ["field"],
+        }).toSimpleSchema();
+
+        const validObjects = [
+            {
+                title: "title",
+                _id: "id",
+                owner: {
+                    _id: "_id",
+                    cls: "cls",
+                },
+            },
+            {
+                conditions: [],
+                authors: [],
+                title: "title",
+                method: "method",
+                timestamp: 123,
+            },
+            {
+                doi: "doi",
+            },
+        ];
+
+        simpleSchema.validate({
+            field: {
+                test: "test",
+                ...validObjects[0],
+            },
+        });
+
+        simpleSchema.validate({
+            field: {
+                test: "test",
+                ...validObjects[1],
+            },
+        });
+
+        simpleSchema.validate({
+            field: {
+                test: "test",
+                ...validObjects[2],
+            },
+        });
+
+        simpleSchema.validate({
+            field: {
+                test: "test",
+                ...validObjects[0],
+                ...validObjects[1],
+            },
+        });
+
+        simpleSchema.validate({
+            field: {
+                test: "test",
+                ...validObjects[1],
+                ...validObjects[2],
+            },
+        });
+
+        simpleSchema.validate({
+            field: {
+                test: "test",
+                ...validObjects[2],
+                ...validObjects[3],
+            },
+        });
+
+        simpleSchema.validate({
+            field: {
+                test: "test",
+                ...validObjects[1],
+                ...validObjects[2],
+                ...validObjects[3],
             },
         });
     });

@@ -2,6 +2,7 @@ import SimpleSchema from "simpl-schema";
 
 // import SimpleSchema from "./simpl-schema/package/dist/main";
 import {
+    convertAnyOfToOneOf,
     getAllowedValuesOption,
     getBlackboxOption,
     getJsonSchemaProperties,
@@ -45,11 +46,14 @@ export default class JsonToSimpleSchema {
     }
 
     static getSimpleSchemaTypeOption(jsonProperty) {
-        const { oneOf, anyOf } = jsonProperty;
+        const oneOfSchemas = jsonProperty.anyOf
+            ? convertAnyOfToOneOf(jsonProperty.anyOf)
+            : jsonProperty.oneOf;
 
-        if (oneOf || anyOf) {
-            const schemas = (oneOf || anyOf).map((schema) => {
-                const baseSchema = new JsonToSimpleSchema(jsonProperty).toSimpleSchema();
+        if (oneOfSchemas) {
+            const schemas = oneOfSchemas.map((schema) => {
+                const { oneOf, anyOf, ...restJsonProperty } = jsonProperty;
+                const baseSchema = new JsonToSimpleSchema(restJsonProperty).toSimpleSchema();
                 const oneOfSchema = new JsonToSimpleSchema(schema).toSimpleSchema();
 
                 return oneOfSchema.extend(baseSchema);
