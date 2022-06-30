@@ -13,7 +13,7 @@
         "type": "git",
         "url": "https://github.com/Exabyte-io/json-to-simpl-schema.git"
     },
-    "main": "dist/index.js",
+    "main": "dist/main.js",
     "files": [
         "/dist",
         "/src",
