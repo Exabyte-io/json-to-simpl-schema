@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import SimpleSchema from "simpl-schema";
 
-import JsonToSimpleSchema from "../src/index";
+import JsonToSimpleSchema from "../src/main";
 import allOf from "./fixtures/allOf";
 import anyOf from "./fixtures/anyOf";
 import baseJsonSchema from "./fixtures/baseJsonSchema";
