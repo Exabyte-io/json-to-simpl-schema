@@ -33,8 +33,7 @@
         "@babel/preset-env": "7.16.4",
         "@babel/preset-react": "7.16.7",
         "@babel/register": "^7.16.0",
-        "@babel/runtime-corejs3": "7.16.8",
-        "simpl-schema": "git+https://github.com/Exabyte-io/simpl-schema.git#f79a487e365a492ad63336f769f8a356126a8745"
+        "@babel/runtime-corejs3": "7.16.8"
     },
     "devDependencies": {
         "chai": "^4.3.4",
@@ -51,7 +50,11 @@
         "lint-staged": "^12.1.2",
         "mocha": "^9.1.3",
         "nyc": "^15.1.0",
-        "prettier": "^2.7.1"
+        "prettier": "^2.7.1",
+        "simpl-schema": "git+https://github.com/Exabyte-io/simpl-schema.git#f79a487e365a492ad63336f769f8a356126a8745"
+    },
+    "peerDependencies": {
+        "simpl-schema": "git+https://github.com/Exabyte-io/simpl-schema.git#f79a487e365a492ad63336f769f8a356126a8745"
     },
     "engines": {
         "node": ">=12.0.0"
