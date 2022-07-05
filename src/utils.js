@@ -85,7 +85,11 @@ export function getOptionalOption(propertyName, schema) {
 }
 
 export function getBlackboxOption(jsonProperty) {
-    return Boolean(jsonProperty.additionalProperties);
+    if (jsonProperty.additionalProperties !== undefined) {
+        return jsonProperty.additionalProperties;
+    }
+
+    return jsonProperty.type === "object" && !jsonProperty.properties;
 }
 
 export function getAllowedValuesOption(jsonProperty) {

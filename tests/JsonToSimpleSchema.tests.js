@@ -69,6 +69,7 @@ describe("JsonToSimpleSchema", () => {
         expect(rawSchema.ipv6.type.definitions[0].regEx).to.equal(SimpleSchema.RegEx.IPv6);
 
         expect(rawSchema.emptyObject.type.definitions[0].type).to.equal(Object);
+        expect(rawSchema.emptyObject.type.definitions[0].blackbox).to.equal(true);
 
         simpleSchema.validate({
             id: 1,
@@ -82,7 +83,9 @@ describe("JsonToSimpleSchema", () => {
             hostname: "www.google.com",
             ipv4: "1.1.1.1",
             ipv6: "2001:0db8:11a3:09d7:1f34:8a2e:07a0:765d",
-            emptyObject: {},
+            emptyObject: {
+                anyField: true,
+            },
         });
     });
 
