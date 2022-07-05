@@ -81,41 +81,44 @@ export function getSchemaRequiredProperties(schema) {
 export function getOptionalOption(propertyName, schema) {
     const requiredProperties = getSchemaRequiredProperties(schema);
 
-    return !requiredProperties.includes(propertyName);
+    return { optional: !requiredProperties.includes(propertyName) };
 }
 
 export function getBlackboxOption(jsonProperty) {
     if (jsonProperty.additionalProperties !== undefined) {
-        return jsonProperty.additionalProperties;
+        return { blackbox: jsonProperty.additionalProperties };
     }
 
-    return jsonProperty.type === "object" && !jsonProperty.properties;
+    return { blackbox: jsonProperty.type === "object" && !jsonProperty.properties };
 }
 
 export function getAllowedValuesOption(jsonProperty) {
     if (jsonProperty.enum) {
-        return jsonProperty.enum.filter((item) => item !== null);
+        return { allowedValues: jsonProperty.enum.filter((item) => item !== null) };
     }
+
+    return {};
 }
 
 export function getRegExOption(jsonProperty) {
     const { pattern, format } = jsonProperty;
 
     if (pattern) {
-        return new RegExp(pattern);
+        return { regEx: new RegExp(pattern) };
     }
 
     switch (format) {
         case "email":
-            return SimpleSchema.RegEx.Email;
+            return { regEx: SimpleSchema.RegEx.Email };
         case "host-name":
         case "hostname":
-            return SimpleSchema.RegEx.Domain;
+            return { regEx: SimpleSchema.RegEx.Domain };
         case "ipv4":
-            return SimpleSchema.RegEx.IPv4;
+            return { regEx: SimpleSchema.RegEx.IPv4 };
         case "ipv6":
-            return SimpleSchema.RegEx.IPv6;
+            return { regEx: SimpleSchema.RegEx.IPv6 };
         default:
+            return {};
     }
 }
 

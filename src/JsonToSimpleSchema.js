@@ -23,11 +23,11 @@ export default class JsonToSimpleSchema {
         const simpleSchemaEntries = Object.entries(properties).reduce(
             (accumulatedEntries, [propertyName, jsonProperty]) => {
                 const simpleSchemaProperty = {
-                    type: JsonToSimpleSchema.getSimpleSchemaTypeOption(jsonProperty),
-                    optional: getOptionalOption(propertyName, this.jsonSchema),
-                    blackbox: getBlackboxOption(jsonProperty),
-                    allowedValues: getAllowedValuesOption(jsonProperty),
-                    regEx: getRegExOption(jsonProperty),
+                    ...JsonToSimpleSchema.getSimpleSchemaTypeOption(jsonProperty),
+                    ...getOptionalOption(propertyName, this.jsonSchema),
+                    ...getBlackboxOption(jsonProperty),
+                    ...getAllowedValuesOption(jsonProperty),
+                    ...getRegExOption(jsonProperty),
                     ...translateOptions(jsonProperty),
                 };
 
@@ -59,26 +59,29 @@ export default class JsonToSimpleSchema {
                 return oneOfSchema.extend(baseSchema);
             });
 
-            return SimpleSchema.oneOf(...schemas);
+            return { type: SimpleSchema.oneOf(...schemas) };
         }
 
         const primitiveType = getPrimitivePropertyType(jsonProperty);
 
-        return primitiveType === Object &&
+        const typeOption =
+            primitiveType === Object &&
             jsonProperty.properties &&
             !jsonProperty.additionalProperties
-            ? new JsonToSimpleSchema(jsonProperty).toSimpleSchema()
-            : primitiveType;
+                ? new JsonToSimpleSchema(jsonProperty).toSimpleSchema()
+                : primitiveType;
+
+        return { type: typeOption };
     }
 
     static getArrayEntry(propertyName, jsonProperty) {
         return [
             `${propertyName}.$`,
             {
-                type: JsonToSimpleSchema.getSimpleSchemaTypeOption(jsonProperty.items),
-                blackbox: getBlackboxOption(jsonProperty.items),
-                allowedValues: getAllowedValuesOption(jsonProperty.items),
-                regEx: getRegExOption(jsonProperty.items),
+                ...JsonToSimpleSchema.getSimpleSchemaTypeOption(jsonProperty.items),
+                ...getBlackboxOption(jsonProperty.items),
+                ...getAllowedValuesOption(jsonProperty.items),
+                ...getRegExOption(jsonProperty.items),
                 ...translateOptions(jsonProperty.items),
             },
         ];
