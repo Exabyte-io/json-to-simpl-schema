@@ -151,4 +151,7 @@ export default [
         },
         required: ["type"],
     },
+    {
+        type: "string",
+    },
 ];

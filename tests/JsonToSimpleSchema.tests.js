@@ -176,6 +176,10 @@ describe("JsonToSimpleSchema", () => {
                 test: "test",
             },
         });
+
+        simpleSchema.validate({
+            field: "test",
+        });
     });
 
     it("AnyOf", () => {

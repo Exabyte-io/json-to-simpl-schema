@@ -153,17 +153,19 @@ export function translateOptions(jsonProperty) {
 }
 
 export function getPrimitivePropertyType(jsonProperty) {
-    if (!jsonProperty.type) {
-        if (jsonProperty.properties) {
+    const { properties, allOf, oneOf, anyOf, items, type } = jsonProperty;
+
+    if (!type) {
+        if (properties || allOf || oneOf || anyOf) {
             return Object;
         }
-        if (jsonProperty.items) {
+        if (items) {
             return Array;
         }
         return String;
     }
 
-    switch (jsonProperty.type) {
+    switch (type) {
         case "integer":
             return SimpleSchema.Integer;
         case "number":

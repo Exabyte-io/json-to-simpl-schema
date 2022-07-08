@@ -52,11 +52,17 @@ export default class JsonToSimpleSchema {
 
         if (oneOfSchemas) {
             const schemas = oneOfSchemas.map((schema) => {
-                const { oneOf, anyOf, ...restJsonProperty } = jsonProperty;
-                const baseSchema = new JsonToSimpleSchema(restJsonProperty).toSimpleSchema();
-                const oneOfSchema = new JsonToSimpleSchema(schema).toSimpleSchema();
+                const primitiveType = getPrimitivePropertyType(schema);
 
-                return oneOfSchema.extend(baseSchema);
+                if (primitiveType === Object) {
+                    const { oneOf, anyOf, ...restJsonProperty } = jsonProperty;
+                    const baseSchema = new JsonToSimpleSchema(restJsonProperty).toSimpleSchema();
+                    const oneOfSchema = new JsonToSimpleSchema(schema).toSimpleSchema();
+
+                    return oneOfSchema.extend(baseSchema);
+                }
+
+                return primitiveType;
             });
 
             return { type: SimpleSchema.oneOf(...schemas) };
