@@ -154,4 +154,24 @@ export default [
     {
         type: "string",
     },
+    {
+        properties: {
+            arrayField: {
+                oneOf: [
+                    {
+                        type: "array",
+                        items: {
+                            type: "number",
+                        },
+                    },
+                    {
+                        type: "array",
+                        items: {
+                            type: "boolean",
+                        },
+                    },
+                ],
+            },
+        },
+    },
 ];
