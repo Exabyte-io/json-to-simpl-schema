@@ -65,6 +65,10 @@ export default class JsonToSimpleSchema {
                 return primitiveType;
             });
 
+            if (schemas.every((schema) => schema === Array)) {
+                return { type: Array };
+            }
+
             return { type: SimpleSchema.oneOf(...schemas) };
         }
 
@@ -81,6 +85,14 @@ export default class JsonToSimpleSchema {
     }
 
     static getArrayEntry(propertyName, jsonProperty) {
+        if (jsonProperty.oneOf) {
+            const arrayValues = jsonProperty.oneOf.map(
+                (schema) => this.getArrayEntry(propertyName, schema)[1],
+            );
+
+            return [`${propertyName}.$`, SimpleSchema.oneOf(...arrayValues)];
+        }
+
         return [
             `${propertyName}.$`,
             {

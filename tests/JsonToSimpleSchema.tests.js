@@ -180,6 +180,20 @@ describe("JsonToSimpleSchema", () => {
         simpleSchema.validate({
             field: "test",
         });
+
+        simpleSchema.validate({
+            field: {
+                arrayField: [1],
+                test: "test",
+            },
+        });
+
+        simpleSchema.validate({
+            field: {
+                arrayField: [false],
+                test: "test",
+            },
+        });
     });
 
     it("AnyOf", () => {
