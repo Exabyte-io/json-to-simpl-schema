@@ -117,6 +117,9 @@ describe("JsonToSimpleSchema", () => {
 
         expect(rawSchema.slug.type.definitions[0].type).to.equal(String);
 
+        // eslint-disable-next-line no-unused-expressions
+        expect(rawSchema.arguments.defaultValue).to.be.empty;
+
         simpleSchema.validate({
             id: 1,
             _id: "TT",
@@ -131,6 +134,9 @@ describe("JsonToSimpleSchema", () => {
             removed: false,
             createdAt: new Date("2022-12-20"),
             updatedAt: new Date("2022-12-20"),
+            arguments: {
+                nimage: 1,
+            },
         });
     });
 

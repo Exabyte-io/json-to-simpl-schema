@@ -76,8 +76,7 @@ export default class JsonToSimpleSchema {
 
         const typeOption =
             primitiveType === Object &&
-            jsonProperty.properties &&
-            !jsonProperty.additionalProperties
+            ((jsonProperty.properties && !jsonProperty.additionalProperties) || jsonProperty.allOf)
                 ? new JsonToSimpleSchema(jsonProperty).toSimpleSchema()
                 : primitiveType;
 
