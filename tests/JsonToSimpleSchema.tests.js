@@ -294,4 +294,30 @@ describe("JsonToSimpleSchema", () => {
             },
         });
     });
+
+    it("Cache schemas", () => {
+        new JsonToSimpleSchema({
+            schemaId: "cache-test",
+            ...baseJsonSchema,
+        }).toSimpleSchema();
+
+        const simpleSchema = new JsonToSimpleSchema({
+            schemaId: "cache-test",
+            type: "object",
+            properties: {
+                _id: {
+                    description: "The unique identifier for a product",
+                    type: "integer",
+                },
+            },
+        }).toSimpleSchema();
+
+        const rawSchema = simpleSchema._schema;
+
+        // eslint-disable-next-line no-unused-expressions
+        expect(rawSchema._id).to.be.undefined;
+
+        expect(rawSchema.id.type.definitions[0].type).to.equal(SimpleSchema.Integer);
+        expect(rawSchema.id.optional).to.equal(false);
+    });
 });

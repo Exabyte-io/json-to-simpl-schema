@@ -12,13 +12,20 @@ import {
     translateOptions,
 } from "./utils";
 
+const schemaCache = new Map();
+
 export default class JsonToSimpleSchema {
     constructor(jsonSchema) {
         this.jsonSchema = jsonSchema;
     }
 
     toSimpleSchema() {
+        const schemaId = this.jsonSchema?.schemaId;
         const properties = getJsonSchemaProperties(this.jsonSchema);
+
+        if (schemaId && schemaCache.has(schemaId)) {
+            return schemaCache.get(schemaId);
+        }
 
         const simpleSchemaEntries = Object.entries(properties).reduce(
             (accumulatedEntries, [propertyName, jsonProperty]) => {
@@ -42,7 +49,13 @@ export default class JsonToSimpleSchema {
             [],
         );
 
-        return new SimpleSchema(Object.fromEntries(simpleSchemaEntries));
+        const schema = new SimpleSchema(Object.fromEntries(simpleSchemaEntries));
+
+        if (schemaId) {
+            schemaCache.set(schemaId, schema);
+        }
+
+        return schema;
     }
 
     static getSimpleSchemaTypeOption(jsonProperty) {
