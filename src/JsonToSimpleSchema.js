@@ -12,13 +12,20 @@ import {
     translateOptions,
 } from "./utils";
 
+const schemaCache = new Map();
+
 export default class JsonToSimpleSchema {
     constructor(jsonSchema) {
         this.jsonSchema = jsonSchema;
     }
 
     toSimpleSchema() {
+        const schemaId = this.jsonSchema?.schemaId;
         const properties = getJsonSchemaProperties(this.jsonSchema);
+
+        if (schemaId && schemaCache.has(schemaId)) {
+            return schemaCache.get(schemaId);
+        }
 
         const simpleSchemaEntries = Object.entries(properties).reduce(
             (accumulatedEntries, [propertyName, jsonProperty]) => {
@@ -42,7 +49,13 @@ export default class JsonToSimpleSchema {
             [],
         );
 
-        return new SimpleSchema(Object.fromEntries(simpleSchemaEntries));
+        const schema = new SimpleSchema(Object.fromEntries(simpleSchemaEntries));
+
+        if (schemaId) {
+            schemaCache.set(schemaId, schema);
+        }
+
+        return schema;
     }
 
     static getSimpleSchemaTypeOption(jsonProperty) {
@@ -65,6 +78,10 @@ export default class JsonToSimpleSchema {
                 return primitiveType;
             });
 
+            if (schemas.every((schema) => schema === Array)) {
+                return { type: Array };
+            }
+
             return { type: SimpleSchema.oneOf(...schemas) };
         }
 
@@ -72,8 +89,7 @@ export default class JsonToSimpleSchema {
 
         const typeOption =
             primitiveType === Object &&
-            jsonProperty.properties &&
-            !jsonProperty.additionalProperties
+            ((jsonProperty.properties && !jsonProperty.additionalProperties) || jsonProperty.allOf)
                 ? new JsonToSimpleSchema(jsonProperty).toSimpleSchema()
                 : primitiveType;
 
@@ -81,6 +97,14 @@ export default class JsonToSimpleSchema {
     }
 
     static getArrayEntry(propertyName, jsonProperty) {
+        if (jsonProperty.oneOf) {
+            const arrayValues = jsonProperty.oneOf.map(
+                (schema) => this.getArrayEntry(propertyName, schema)[1],
+            );
+
+            return [`${propertyName}.$`, SimpleSchema.oneOf(...arrayValues)];
+        }
+
         return [
             `${propertyName}.$`,
             {

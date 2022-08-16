@@ -55,6 +55,35 @@ export default [
                 },
                 required: ["name", "slug"],
             },
+            {
+                properties: {
+                    arguments: {
+                        description:
+                            "Optional arguments specific to using application - VASP, Quantum Espresso, etc. Specified elsewhere",
+                        type: "object",
+                        default: {},
+                        allOf: [
+                            {
+                                schemaId: "software-directory-modeling-espresso-arguments",
+                                $schema: "http://json-schema.org/draft-04/schema#",
+                                title: "quantum espresso arguments schema",
+                                type: "object",
+                                properties: {
+                                    nimage: {
+                                        description:
+                                            "Processors can be divided into different `images`, each corresponding to a different self-consistent or linear-response calculation, loosely coupled to others.",
+                                        type: "integer",
+                                        default: 1,
+                                        minimum: 1,
+                                        maximum: 100,
+                                    },
+                                },
+                                additionalProperties: false,
+                            },
+                        ],
+                    },
+                },
+            },
         ],
         properties: {
             _id: {

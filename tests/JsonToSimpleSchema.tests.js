@@ -117,6 +117,9 @@ describe("JsonToSimpleSchema", () => {
 
         expect(rawSchema.slug.type.definitions[0].type).to.equal(String);
 
+        // eslint-disable-next-line no-unused-expressions
+        expect(rawSchema.arguments.defaultValue).to.be.empty;
+
         simpleSchema.validate({
             id: 1,
             _id: "TT",
@@ -131,6 +134,9 @@ describe("JsonToSimpleSchema", () => {
             removed: false,
             createdAt: new Date("2022-12-20"),
             updatedAt: new Date("2022-12-20"),
+            arguments: {
+                nimage: 1,
+            },
         });
     });
 
@@ -179,6 +185,20 @@ describe("JsonToSimpleSchema", () => {
 
         simpleSchema.validate({
             field: "test",
+        });
+
+        simpleSchema.validate({
+            field: {
+                arrayField: [1],
+                test: "test",
+            },
+        });
+
+        simpleSchema.validate({
+            field: {
+                arrayField: [false],
+                test: "test",
+            },
         });
     });
 
@@ -273,5 +293,31 @@ describe("JsonToSimpleSchema", () => {
                 ...validObjects[3],
             },
         });
+    });
+
+    it("Cache schemas", () => {
+        new JsonToSimpleSchema({
+            schemaId: "cache-test",
+            ...baseJsonSchema,
+        }).toSimpleSchema();
+
+        const simpleSchema = new JsonToSimpleSchema({
+            schemaId: "cache-test",
+            type: "object",
+            properties: {
+                _id: {
+                    description: "The unique identifier for a product",
+                    type: "integer",
+                },
+            },
+        }).toSimpleSchema();
+
+        const rawSchema = simpleSchema._schema;
+
+        // eslint-disable-next-line no-unused-expressions
+        expect(rawSchema._id).to.be.undefined;
+
+        expect(rawSchema.id.type.definitions[0].type).to.equal(SimpleSchema.Integer);
+        expect(rawSchema.id.optional).to.equal(false);
     });
 });
