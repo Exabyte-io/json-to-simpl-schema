@@ -138,7 +138,7 @@ export function translateOptions(jsonProperty) {
 
     const entries = Object.entries(translationMap)
         .map(([optionName, { key: mappedKey, type }]) => {
-            if (jsonProperty[optionName]) {
+            if (jsonProperty[optionName] !== undefined) {
                 const mappedValue = type
                     ? type(jsonProperty[optionName])
                     : jsonProperty[optionName];
