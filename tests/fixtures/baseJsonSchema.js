@@ -16,6 +16,7 @@ export default {
             type: "number",
             minimum: "0", // test parsing of string values for number
             exclusiveMinimum: 1, // test parsing string values for boolean
+            default: 0,
         },
         tags: {
             type: "array",
@@ -84,6 +85,10 @@ export default {
         },
         emptyObject: {
             type: "object",
+        },
+        flag: {
+            type: "boolean",
+            default: false,
         },
     },
     required: ["id", "name", "price"],

@@ -22,6 +22,7 @@ describe("JsonToSimpleSchema", () => {
         expect(rawSchema.price.type.definitions[0].min).to.equal(0);
         expect(rawSchema.price.type.definitions[0].exclusiveMin).to.equal(true);
         expect(rawSchema.price.optional).to.equal(false);
+        expect(rawSchema.price.defaultValue).to.equal(0);
 
         expect(rawSchema.tags.type.definitions[0].type).to.equal(Array);
         expect(rawSchema.tags.type.definitions[0].minCount).to.equal(1);
@@ -70,6 +71,9 @@ describe("JsonToSimpleSchema", () => {
 
         expect(rawSchema.emptyObject.type.definitions[0].type).to.equal(Object);
         expect(rawSchema.emptyObject.type.definitions[0].blackbox).to.equal(true);
+
+        expect(rawSchema.flag.type.definitions[0].type).to.equal(Boolean);
+        expect(rawSchema.flag.defaultValue).to.equal(false);
 
         simpleSchema.validate({
             id: 1,
