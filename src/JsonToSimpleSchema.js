@@ -20,12 +20,8 @@ export default class JsonToSimpleSchema {
     }
 
     toSimpleSchema() {
-        const schemaId = this.jsonSchema?.schemaId;
+        const schemaId = this.jsonSchema?.$id;
         const properties = getJsonSchemaProperties(this.jsonSchema);
-
-        // if (schemaId && schemaCache.has(schemaId)) {
-        //     return schemaCache.get(schemaId);
-        // }
 
         const simpleSchemaEntries = Object.entries(properties).reduce(
             (accumulatedEntries, [propertyName, jsonProperty]) => {
