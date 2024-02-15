@@ -26,21 +26,21 @@ export default class JsonToSimpleSchema {
         const simpleSchemaEntries = Object.entries(properties).reduce(
             (accumulatedEntries, [propertyName, jsonProperty]) => {
                 const simpleSchemaProperty = {
+                    ...getBlackboxOption(jsonProperty),
                     ...JsonToSimpleSchema.getSimpleSchemaTypeOption(jsonProperty),
                     ...getOptionalOption(propertyName, this.jsonSchema),
-                    ...getBlackboxOption(jsonProperty),
                     ...getAllowedValuesOption(jsonProperty),
                     ...getRegExOption(jsonProperty),
                     ...translateOptions(jsonProperty),
                 };
 
                 const propertyEntry = [propertyName, simpleSchemaProperty];
-                const arrayEntry =
-                    simpleSchemaProperty.type === Array
-                        ? [JsonToSimpleSchema.getArrayEntry(propertyName, jsonProperty)]
-                        : [];
+                const arrayEntry = JsonToSimpleSchema.getArrayEntry(propertyName, jsonProperty);
 
-                return accumulatedEntries.concat([propertyEntry, ...arrayEntry]);
+                return accumulatedEntries.concat([
+                    propertyEntry,
+                    ...(arrayEntry ? [arrayEntry] : []),
+                ]);
             },
             [],
         );
@@ -94,11 +94,15 @@ export default class JsonToSimpleSchema {
 
     static getArrayEntry(propertyName, jsonProperty) {
         if (jsonProperty.oneOf) {
-            const arrayValues = jsonProperty.oneOf.map(
-                (schema) => this.getArrayEntry(propertyName, schema)[1],
-            );
+            const arrayValues = jsonProperty.oneOf
+                .map((schema) => this.getArrayEntry(propertyName, schema)?.[1])
+                .filter((entry) => Boolean(entry));
 
             return [`${propertyName}.$`, SimpleSchema.oneOf(...arrayValues)];
+        }
+
+        if (getPrimitivePropertyType(jsonProperty) !== Array) {
+            return;
         }
 
         return [
